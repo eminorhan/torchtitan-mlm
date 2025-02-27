@@ -12,15 +12,7 @@ My PyTorch-ROCm version is nightly `2.7.0.dev20250221+rocm6.3` and I think a rea
 * Clone this repo and install the following packages:
 ```bash
 pip install datasets torchdata tomli tensorboard sentencepiece tiktoken blobfile tabulate ninja
-``` 
-
-* Download the Llama-3.1-8B tokenizer:
-
-```python 
-python torchtitan/datasets/download_tokenizer.py --repo_id meta-llama/Meta-Llama-3.1-8B --tokenizer_path "original" --hf_token=...
 ```
-
-where `hf_token` is your Hugging Face Hub token.
 
 * Unlike for CUDA, you will need to install FlashAttention-2 for ROCm separately. [This page](https://rocm.docs.amd.com/en/latest/how-to/llm-fine-tuning-optimization/model-acceleration-libraries.html) provides the instructions for that. Basically, to install from source:
 
@@ -75,7 +67,7 @@ Two utility scripts to convert checkpoints between `DCP` and `torch.save` format
 ```bash
 python llama_to_dcp.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR
 ```
-where `INPUT_DIR` is the directory where the original checkpoint is saved (downloaded from [here](https://huggingface.co/meta-llama/Llama-3.2-1B/tree/main/original) for the Llama-3.2-1B model) and `OUTPUT_DIR` is the directory where the `DCP` checkpoint will be saved. The bulk of this script was copied from [this PR](https://github.com/pytorch/torchtitan/commit/3247841423429faf37bdf6918204350db293e482) by [`rlsl (Rasmus)`](https://github.com/rlrs). 
+where `INPUT_DIR` is the directory where the `original` checkpoint is saved (downloaded from [here](https://huggingface.co/meta-llama/Llama-3.2-1B/tree/main/original) for the Llama-3.2-1B model; you can download both the model weights and the tokenizer from this link) and `OUTPUT_DIR` is the directory where the `DCP` checkpoint will be saved. The bulk of this script was copied from [this PR](https://github.com/pytorch/torchtitan/commit/3247841423429faf37bdf6918204350db293e482) by [`rlsl (Rasmus)`](https://github.com/rlrs). 
 
 For the conversion in the other direction (`DCP --> torch.save`), you can use the [`dcp_to_llama.py`](https://github.com/eminorhan/torchtitan-mlm/blob/master/dcp_to_llama.py) script like so:
 ```bash

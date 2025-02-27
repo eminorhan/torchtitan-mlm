@@ -57,7 +57,10 @@ The shuffle is performed once at the beginning of each training session with a f
 This data loading pipeline is preferred over the one implemented in the torchtitan library ([here](https://github.com/pytorch/torchtitan/blob/main/torchtitan/datasets/hf_datasets.py)), which checkpoints a `_sample_idx` variable and attempts to skip to that idx at the beginning of the next training session, since I couldn't verify that this implementation works correctly (I observed that after resuming the checkpoint, the data loader would keep sampling some of the same data rows from the previous sessions, which should have been skipped).
 
 ### Training
-The SLURM batch script in [`train_8B_n64.sh`](https://github.com/eminorhan/frontier-torchtitan/blob/master/train_8B_n64.sh) can be used to train a Llama-3.1-8B model with a context size of 8192 tokens over 64 Frontier nodes. This script uses the training config file in [`train_configs/llama3_8b_n64.toml`](https://github.com/eminorhan/frontier-torchtitan/blob/master/train_configs/llama3_8b_n64.toml). Feel free to modify the config according to your needs.
+The SLURM batch script in [`train_1B_n64.sh`](https://github.com/eminorhan/torchtitan-mlm/blob/master/train_1B_n64.sh) can be used to train a Llama-3.2-1B model with a context size of 16384 tokens over 64 Frontier nodes (with a global batch size of 12.6M tokens per training step). This script uses the training config file in [`train_configs/llama3_1b_n64.toml`](https://github.com/eminorhan/torchtitan-mlm/blob/master/train_configs/llama3_1b_n64.toml). Feel free to modify the config according to your needs.
+
+#### Training throughput
+In the training setup above, we can go through ~300 training steps per hour (3.8B tokens per hour). Going through the entire dataset once, *i.e.* 1 epoch over 5.56T tokens would take about 1500 hours or roughly 2 months.
 
 ### A note on IP network interfaces
 For loading and saving distributed checkpoints, the code uses the `torch.distributed.checkpoint` (DCP) library. A new process group with the `gloo` backend is created for this purpose (separate from the process group used by `nccl` for training). In my experience, the IP network interface to be used by both `gloo` and `nccl` needs to be explicitly set to `hsn0`, *i.e.*:
@@ -68,13 +71,13 @@ export GLOO_SOCKET_IFNAME=hsn0
 Otherwise, it becomes impossible to run on more than ~300 nodes due to communication failures.
 
 ### Checkpoint conversions
-Two utility scripts to convert checkpoints between `DCP` and `torch.save` formats are provided here. [`llama_to_dcp.py`](https://github.com/eminorhan/frontier-torchtitan/blob/master/llama_to_dcp.py) converts a checkpoint saved with `torch.save` to `DCP` format. This is useful when initially converting the original Llama-3 checkpoints into `DCP` format to continue pretraining them with the code in this repository (you will most likely need to use this only once before starting continued pretaining). You can do this as follows:
+Two utility scripts to convert checkpoints between `DCP` and `torch.save` formats are provided here. [`llama_to_dcp.py`](https://github.com/eminorhan/torchtitan-mlm/blob/master/llama_to_dcp.py) converts a checkpoint saved with `torch.save` to `DCP` format. This is useful when initially converting the original Llama-3 checkpoints into `DCP` format to continue pretraining them with the code in this repository (you will most likely need to use this only once before starting continued pretaining). You can do this as follows:
 ```bash
 python llama_to_dcp.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR
 ```
-where `INPUT_DIR` is the directory where the original checkpoint is saved (downloaded from [here](https://huggingface.co/meta-llama/Llama-3.1-8B/tree/main/original) for the 8B model) and `OUTPUT_DIR` is the directory where the `DCP` checkpoint will be saved. The bulk of this script was copied from [this PR](https://github.com/pytorch/torchtitan/commit/3247841423429faf37bdf6918204350db293e482) by [`rlsl (Rasmus)`](https://github.com/rlrs). 
+where `INPUT_DIR` is the directory where the original checkpoint is saved (downloaded from [here](https://huggingface.co/meta-llama/Llama-3.2-1B/tree/main/original) for the Llama-3.2-1B model) and `OUTPUT_DIR` is the directory where the `DCP` checkpoint will be saved. The bulk of this script was copied from [this PR](https://github.com/pytorch/torchtitan/commit/3247841423429faf37bdf6918204350db293e482) by [`rlsl (Rasmus)`](https://github.com/rlrs). 
 
-For the conversion in the other direction (`DCP --> torch.save`), you can use the [`dcp_to_llama.py`](https://github.com/eminorhan/frontier-torchtitan/blob/master/dcp_to_llama.py) script like so:
+For the conversion in the other direction (`DCP --> torch.save`), you can use the [`dcp_to_llama.py`](https://github.com/eminorhan/torchtitan-mlm/blob/master/dcp_to_llama.py) script like so:
 ```bash
 python dcp_to_llama.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR
 ```

@@ -78,6 +78,7 @@ def main(job_config: JobConfig):
     if parallel_dims.dp_enabled:
         dp_mesh = world_mesh["dp"]
         dp_degree, dp_rank = dp_mesh.size(), dp_mesh.get_local_rank()
+        logger.info(f"dp_degree: {dp_degree}; dp_rank: {dp_rank}")
     else:
         dp_degree, dp_rank = 1, 0
 

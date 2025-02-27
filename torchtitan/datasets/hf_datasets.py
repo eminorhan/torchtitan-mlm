@@ -129,6 +129,9 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         self.seq_len = seq_len
         self._all_tokens: List[int] = []
 
+        # set local seed (should be the same across all tp_ranks belonging to the same dp_rank)
+        torch.manual_seed(self._seed + rank)
+
     def __iter__(self):
         max_buffer_token_len = self.seq_len
 

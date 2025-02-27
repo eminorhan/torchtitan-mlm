@@ -150,7 +150,6 @@ class HuggingFaceDataset(IterableDataset, Stateful):
                     # update tokens to the remaining tokens
                     self._all_tokens = self._all_tokens[max_buffer_token_len:]
                     input, label = self.mask_tokens(x)
-                    label = x
                     yield input, label
 
     def mask_tokens(self, inputs: Any) -> Tuple[Any, Any]:
@@ -164,7 +163,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         labels[~masked_indices] = -100  # compute loss on masked tokens only 
 
         # replace masked_indices with mask token
-        inputs[masked_indices] = self._tokenizer.special_tokens(self.mask_token)
+        inputs[masked_indices] = self._tokenizer.special_tokens[self.mask_token]
 
         return inputs, labels
 

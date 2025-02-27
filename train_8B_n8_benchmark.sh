@@ -4,7 +4,7 @@
 #SBATCH --nodes=8
 #SBATCH --gpus-per-node=8
 #SBATCH --cpus-per-task=8
-#SBATCH --time=1:00:00
+#SBATCH --time=00:15:00
 #SBATCH --job-name=train_llama_mlm_8B_n8_benchamrk
 #SBATCH --output=train_llama_mlm_8B_n8_benchmark_%A_%a.out
 #SBATCH --array=0
